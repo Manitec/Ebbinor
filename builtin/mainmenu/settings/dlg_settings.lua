@@ -110,7 +110,7 @@ local function load()
 	local change_keys = {
 		query_text = "Controls",
 		requires = {
-			touch_controls = false,
+			keyboard_mouse = true,
 		},
 		get_formspec = function(self, avail_w)
 			local btn_w = math.min(avail_w, 3)
@@ -152,19 +152,9 @@ local function load()
 
 	table.insert(page_by_id.controls_keyboard_and_mouse.content, 1, change_keys)
 	do
-		local content = page_by_id.graphics_and_audio_effects.content
+		local content = page_by_id.graphics_and_audio_shaders.content
 		local idx = table.indexof(content, "enable_dynamic_shadows")
 		table.insert(content, idx, shadows_component)
-
-		idx = table.indexof(content, "enable_auto_exposure") + 1
-		local note = component_funcs.note(fgettext_ne("(The game will need to enable automatic exposure as well)"))
-		note.requires = get_setting_info("enable_auto_exposure").requires
-		table.insert(content, idx, note)
-
-		idx = table.indexof(content, "enable_volumetric_lighting") + 1
-		note = component_funcs.note(fgettext_ne("(The game will need to enable volumetric lighting as well)"))
-		note.requires = get_setting_info("enable_volumetric_lighting").requires
-		table.insert(content, idx, note)
 	end
 
 	-- These must not be translated, as they need to show in the local
@@ -334,6 +324,8 @@ local function check_requirements(name, requires)
 	local special = {
 		android = PLATFORM == "Android",
 		desktop = PLATFORM ~= "Android",
+		touchscreen_gui = core.settings:get_bool("enable_touch"),
+		keyboard_mouse = not core.settings:get_bool("enable_touch"),
 		shaders_support = shaders_support,
 		shaders = core.settings:get_bool("enable_shaders") and shaders_support,
 		opengl = video_driver == "opengl",
@@ -465,13 +457,13 @@ local function get_formspec(dialogdata)
 
 	local extra_h = 1 -- not included in tabsize.height
 	local tabsize = {
-		width = core.settings:get_bool("touch_gui") and 16.5 or 15.5,
-		height = core.settings:get_bool("touch_gui") and (10 - extra_h) or 12,
+		width = core.settings:get_bool("enable_touch") and 16.5 or 15.5,
+		height = core.settings:get_bool("enable_touch") and (10 - extra_h) or 12,
 	}
 
-	local scrollbar_w = core.settings:get_bool("touch_gui") and 0.6 or 0.4
+	local scrollbar_w = core.settings:get_bool("enable_touch") and 0.6 or 0.4
 
-	local left_pane_width = core.settings:get_bool("touch_gui") and 4.5 or 4.25
+	local left_pane_width = core.settings:get_bool("enable_touch") and 4.5 or 4.25
 	local left_pane_padding = 0.25
 	local search_width = left_pane_width + scrollbar_w - (0.75 * 2)
 
@@ -485,7 +477,7 @@ local function get_formspec(dialogdata)
 	local fs = {
 		"formspec_version[6]",
 		"size[", tostring(tabsize.width), ",", tostring(tabsize.height + extra_h), "]",
-		core.settings:get_bool("touch_gui") and "padding[0.01,0.01]" or "",
+		core.settings:get_bool("enable_touch") and "padding[0.01,0.01]" or "",
 		"bgcolor[#0000]",
 
 		-- HACK: this is needed to allow resubmitting the same formspec
@@ -495,18 +487,6 @@ local function get_formspec(dialogdata)
 
 		("button[0,%f;%f,0.8;back;%s]"):format(
 				tabsize.height + 0.2, back_w, fgettext("Back")),
-
-		("box[%f,%f;%f,0.8;#0000008C]"):format(
-			back_w + 0.2, tabsize.height + 0.2, checkbox_w),
-		("checkbox[%f,%f;show_technical_names;%s;%s]"):format(
-			back_w + 2*0.2, tabsize.height + 0.6,
-			fgettext("Show technical names"), tostring(show_technical_names)),
-
-		("box[%f,%f;%f,0.8;#0000008C]"):format(
-			back_w + 2*0.2 + checkbox_w, tabsize.height + 0.2, checkbox_w),
-		("checkbox[%f,%f;show_advanced;%s;%s]"):format(
-			back_w + 3*0.2 + checkbox_w, tabsize.height + 0.6,
-			fgettext("Show advanced settings"), tostring(show_advanced)),
 
 		"field[0.25,0.25;", tostring(search_width), ",0.75;search_query;;",
 			core.formspec_escape(dialogdata.query or ""), "]",
@@ -660,15 +640,15 @@ local function buttonhandler(this, fields)
 		write_settings_early()
 	end
 
-	-- touch_controls is a checkbox in a setting component. We handle this
+	-- enable_touch is a checkbox in a setting component. We handle this
 	-- setting differently so we can hide/show pages using the next if-statement
-	if fields.touch_controls ~= nil then
-		local value = core.is_yes(fields.touch_controls)
-		core.settings:set_bool("touch_controls", value)
+	if fields.enable_touch ~= nil then
+		local value = core.is_yes(fields.enable_touch)
+		core.settings:set_bool("enable_touch", value)
 		write_settings_early()
 	end
 
-	if fields.show_advanced ~= nil or fields.touch_controls ~= nil then
+	if fields.show_advanced ~= nil or fields.enable_touch ~= nil then
 		local suggested_page_id = update_filtered_pages(dialogdata.query)
 
 		dialogdata.components = nil

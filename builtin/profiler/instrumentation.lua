@@ -217,9 +217,8 @@ local function init()
 		-- Wrap register_lbm() to automatically instrument lbms.
 		local orig_register_lbm = core.register_lbm
 		core.register_lbm = function(spec)
-			local k = spec.bulk_action ~= nil and "bulk_action" or "action"
-			spec[k] = instrument {
-				func = spec[k],
+			spec.action = instrument {
+				func = spec.action,
 				class = "LBM",
 				label = spec.label or spec.name,
 			}

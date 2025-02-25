@@ -59,7 +59,7 @@ local flag_checkboxes = {
 	},
 	flat = {
 		cb_caverns,
-		{ "hills", fgettext("Hills") },
+		--{ "hills", fgettext("Hills") },
 		{ "lakes", fgettext("Lakes") },
 	},
 	fractal = {

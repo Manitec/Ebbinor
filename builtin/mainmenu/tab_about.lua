@@ -15,6 +15,29 @@
 --with this program; if not, write to the Free Software Foundation, Inc.,
 --51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+-- https://github.com/orgs/minetest/teams/engine/members
+
+local Ebbinor_developers = {
+        "Joe Manis (manitec) [inspired by my kids]",
+	"Ebbinor is made possible by the Minetest engine,",
+        "which is free software licensed under LGPLv2.1.",
+}
+
+local core_engine_developers = {
+	"Perttu Ahola (celeron55) [Project founder]",
+	"sfan5",
+	"ShadowNinja",
+	"Nathanaëlle Courant",
+	"Loic Blot",
+	"Andrew Ward",
+	"Krock/SmallJoker",
+	"Lars Hofhansl",
+	"v-rob",
+	"Desour/DS",
+	"srifqi",
+	"Gregor Parzefall",
+        "Pluss all active contributors and devs from minetest",
+}
 
 local function prepare_credits(dest, source)
 	local string = table.concat(source, "\n") .. "\n"
@@ -30,13 +53,6 @@ local function prepare_credits(dest, source)
 	table.insert(dest, string)
 end
 
-local function get_credits()
-	local f = assert(io.open(core.get_mainmenu_path() .. "/credits.json"))
-	local json = core.parse_json(f:read("*all"))
-	f:close()
-	return json
-end
-
 return {
 	name = "about",
 	caption = fgettext("About"),
@@ -50,44 +66,25 @@ return {
 			"<tag name=gray color=#aaa>",
 		}
 
-		local credits = get_credits()
-
 		table.insert_all(hypertext, {
-			"<heading>", fgettext_ne("Core Developers"), "</heading>\n",
+			"<heading>", fgettext_ne("Ebbinor Developers"), "</heading>\n",
 		})
-		prepare_credits(hypertext, credits.core_developers)
+		prepare_credits(hypertext, Ebbinor_developers)
 		table.insert_all(hypertext, {
 			"\n",
-			"<heading>", fgettext_ne("Core Team"), "</heading>\n",
+			"<heading>", fgettext_ne("Core Engine Developers"), "</heading>\n",
 		})
-		prepare_credits(hypertext, credits.core_team)
-		table.insert_all(hypertext, {
-			"\n",
-			"<heading>", fgettext_ne("Active Contributors"), "</heading>\n",
-		})
-		prepare_credits(hypertext, credits.contributors)
-		table.insert_all(hypertext, {
-			"\n",
-			"<heading>", fgettext_ne("Previous Core Developers"), "</heading>\n",
-		})
-		prepare_credits(hypertext, credits.previous_core_developers)
-		table.insert_all(hypertext, {
-			"\n",
-			"<heading>", fgettext_ne("Previous Contributors"), "</heading>\n",
-		})
-		prepare_credits(hypertext, credits.previous_contributors)
-
+		prepare_credits(hypertext, core_engine_developers)
+		
 		hypertext = table.concat(hypertext):sub(1, -2)
 
 		local fs = "image[1.5,0.6;2.5,2.5;" .. core.formspec_escape(logofile) .. "]" ..
-			"style[label_button;border=false]" ..
-			"button[0.1,3.4;5.3,0.5;label_button;" ..
-			core.formspec_escape(version.project .. " " .. version.string) .. "]" ..
-			"button_url[1.5,4.1;2.5,0.8;homepage;minetest.net;https://www.minetest.net/]" ..
+
+			"button[1.5,4.1;2.5,0.8;homepage;Test]" ..
 			"hypertext[5.5,0.25;9.75,6.6;credits;" .. minetest.formspec_escape(hypertext) .. "]"
 
 		-- Render information
-		local active_renderer_info = fgettext("Active renderer:") .. " " ..
+		local active_renderer_info = fgettext(" ") .. " " ..
 			core.formspec_escape(core.get_active_renderer())
 		fs = fs .. "style[label_button2;border=false]" ..
 			"button[0.1,6;5.3,0.5;label_button2;" .. active_renderer_info .. "]"..
@@ -104,15 +101,19 @@ return {
 			fs = fs .. "button[0.5,5.1;4.5,0.8;share_debug;" .. fgettext("Share debug log") .. "]"
 		else
 			fs = fs .. "tooltip[userdata;" ..
-					fgettext("Opens the directory that contains user-provided worlds, games, mods,\n" ..
-							"and texture packs in a file manager / explorer.") .. "]"
-			fs = fs .. "button[0.5,5.1;4.5,0.8;userdata;" .. fgettext("Open User Data Directory") .. "]"
+					fgettext("Opens the directory that contains start up file,\n" ..
+							"in a file manager / explorer.") .. "]"
+			fs = fs .. "button[0.5,5.1;4.5,0.8;userdata;" .. fgettext("Open file location") .. "]"
 		end
 
 		return fs
 	end,
 
 	cbf_button_handler = function(this, fields, name, tabdata)
+		if fields.homepage then
+			core.open_url("https://www.joesfaves.com")
+		end
+
 		if fields.share_debug then
 			local path = core.get_user_path() .. DIR_DELIM .. "debug.txt"
 			core.share_file(path)
